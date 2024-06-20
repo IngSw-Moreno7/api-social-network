@@ -1,9 +1,9 @@
-const mongoose = require("mongoose");
+import { connect } from "mongoose";
 
 const connection = async() => {
 
   try {
-    await mongoose.connect("mongodb://localhost:27017/bd_latribu");
+    await connect("mongodb://localhost:27017/bd_latribu");
     console.log("Conectado correctamente a la BD: bd_latribu ");
   } catch (error) {
     console.log(error);
@@ -11,4 +11,4 @@ const connection = async() => {
   }
 }
 
-module.exports = connection;
+export default connection;
