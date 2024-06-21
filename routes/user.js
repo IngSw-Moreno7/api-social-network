@@ -1,10 +1,11 @@
 //Importaciones
 import { Router } from "express";
 const router = Router();
-import { testUser } from "../controllers/user.js";
+import { register, testUser } from "../controllers/user.js";
 
 //Definir las rutas
 router.get('/test-user', testUser);
+router.post('/register', register);
 
 //Exportar el router
 export default router;
