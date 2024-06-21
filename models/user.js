@@ -1,4 +1,4 @@
-import {Schema, model} from "mongoose";
+import { Schema, model} from "mongoose";
 
 const UserSchema = Schema ({
   name: {
@@ -23,15 +23,15 @@ const UserSchema = Schema ({
   },
   role: {
     type: String,
-    required: "role_user"
+    default: "role_user"
   },
   image: {
     type: String,
-    required: "default.png"
+    default: "default.png"
   },
   created_at: {
     type: Date,
-    required: Date.now
+    default: Date.now
   }
 });
 

@@ -12,41 +12,39 @@ export const testUser = (req, res) => {
 export const register = async (req, res) => {
   try {
     // Recoger datos de la petición
-    const params = req.body;
+    let params = req.body;
 
     // Validaciones: verificar que los datos obligatorios estén presentes
-    if (!params.name?.trim() || !params.last_name?.trim() || !params.email?.trim() || !params.password?.trim() || !params.nick?.trim()) {
+    if (!params.name || !params.last_name || !params.email || !params.password || !params.nick){
       return res.status(400).json({
         status: "error",
         message: "Faltan datos por enviar"
       });
     }
-
     // Crear una instancia del modelo User con los datos validados
-    const user_to_save = new User(params);
+    let user_to_save = new User(params);
 
-    // Buscar si ya existe un usuario con el mismo email o nick
+   // Buscar si ya existe un usuario con el mismo email o nick
     const existingUser = await User.findOne({
       $or: [
-        { email: user_to_save.email },
-        { nick: user_to_save.nick }
+        { email: user_to_save.email.toLowerCase() },
+        { nick: user_to_save.nick.toLowerCase() }
       ]
     });
 
     // Si encuentra un usuario, devuelve un mensaje indicando que ya existe
-    if (existingUser) {
-      return res.status(200).json({
+    if(existingUser) {
+      return res.status(409).json({
         status: "error",
-        message: "El usuario ya existe"
+        message: "!El usuario ya existe!"
       });
     }
-
-    // Cifrar contraseñas
+    // Cifrar contraseña
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(user_to_save.password, salt);
-    user_to_save.password = hashedPassword;
+    const hasedPassword = await bcrypt.hash(user_to_save.password, salt);
+    user_to_save.password = hasedPassword;
 
-    // Guardar el usuario en la BD
+    // Guardar el usuario en la base de datos
     await user_to_save.save();
 
     // Devolver respuesta exitosa y el usuario registrado
@@ -57,10 +55,10 @@ export const register = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error en registro de usuarios:", error);
+    console.log("Error en registro de usuario:", error);
     return res.status(500).json({
       status: "error",
       message: "Error en registro de usuarios"
     });
   }
-};
+}
