@@ -1,4 +1,4 @@
-// Importar dependecias
+// Importar dependencias
 import jwt from 'jwt-simple';
 import moment from 'moment';
 
