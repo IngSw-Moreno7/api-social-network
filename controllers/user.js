@@ -1,21 +1,22 @@
 import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import { createToken } from "../services/jwt.js";
+import fs from "fs";
 
 // Acciones de prueba
 export const testUser = (req, res) => {
   return res.status(200).send({
     message: "Mensaje enviado desde el controlador: user.js"
   });
-};
+}
 
-// Registro de los usuarios
+// Método para Registrar de usuarios
 export const register = async (req, res) => {
   try {
     // Recoger datos de la petición
     let params = req.body;
 
-    // Validaciones: verificar que los datos obligatorios estén presentes
+    // Validaciones: verificamos que los datos obligatorios estén presentes
     if (!params.name || !params.last_name || !params.email || !params.password || !params.nick){
       return res.status(400).json({
         status: "error",
@@ -54,7 +55,12 @@ export const register = async (req, res) => {
     return res.status(201).json({
       status: "created",
       message: "Usuario registrado con éxito",
-      user: user_to_save
+      user: {
+        id: user_to_save.id,
+        name: user_to_save.name,
+        last_name: user_to_save.last_name,
+        nick: user_to_save.nick,
+      }
     });
 
   } catch (error) {
@@ -132,18 +138,17 @@ export const login = async (req, res) => {
     });
   }
 }
-
 // Método para mostrar el perfil del usuario
 export const profile = async (req, res) => {
   try {
     // Obtener el ID del usuario desde los parámetros de la URL
     const userId = req.params.id;
 
-    // Buscar al usuario en la BD, se excluyen la contraseña, rol, versión
-    const user = await User.findById(userId).select('-password -role -__v');
+    // Buscar al usuario en la BD, excluimos la contraseña, rol, versión.
+    const userProfile = await User.findById(userId).select('-password -role -__v -email');
 
     // Verificar si el usuario existe
-    if (!user) {
+    if (!userProfile) {
       return res.status(404).send({
         status: "error",
         message: "Usuario no encontrado"
@@ -153,7 +158,8 @@ export const profile = async (req, res) => {
     // Devolver la información del perfil del usuario
     return res.status(200).json({
       status: "success",
-      user
+      user: userProfile,
+      followInfo
     });
 
   } catch (error) {
@@ -168,7 +174,7 @@ export const profile = async (req, res) => {
 // Método para listar usuarios con paginación
 export const listUsers = async (req, res) => {
   try {
-    // Controlar en que página estamos y el número de items por pagina
+    // Controlar en qué página estamos y el número de ítemas por página
     let page = req.params.page ? parseInt(req.params.page, 10) : 1;
     let itemsPerPage = req.query.limit ? parseInt(req.query.limit, 10) : 5;
 
@@ -189,7 +195,7 @@ export const listUsers = async (req, res) => {
       });
     }
 
-    // Devolver los usuarios paginados
+     // Devolver los usuarios paginados
     return res.status(200).json({
       status: "success",
       users: users.docs,
@@ -201,8 +207,10 @@ export const listUsers = async (req, res) => {
       hasNextPage: users.hasNextPage,
       prevPage: users.prevPage,
       nextPage: users.nextPage,
+      users_following: followUsers.following,
+      user_follow_me: followUsers.followers
     });
-    
+
   } catch (error) {
     console.log("Error al listar los usuarios:", error);
     return res.status(500).send({
@@ -218,12 +226,12 @@ export const updateUser = async (req, res) => {
     // Recoger información del usuario a actualizar
     let userIdentity = req.user;
     let userToUpdate = req.body;
-
+    
     // Validar que los campos necesarios estén presentes
     if (!userToUpdate.email || !userToUpdate.nick) {
       return res.status(400).send({
         status: "error",
-        message: "Los campos email y nick son requeridos"
+        message: "¡Los campos email y nick son requeridos!"
       });
     }
 
@@ -249,9 +257,9 @@ export const updateUser = async (req, res) => {
     if (isDuplicateUser) {
       return res.status(400).send({
         status: "error",
-        message: "Solo se puede modificar los datos del usuario logueado"
+        message: "Solo se puede modificar los datos del usuario logueado."
       });
-    } 
+    }
 
     // Cifrar la contraseña si se proporciona
     if (userToUpdate.password) {
@@ -268,7 +276,7 @@ export const updateUser = async (req, res) => {
       delete userToUpdate.password;
     }
 
-    // Actualizar el usuario modificado
+    // Buscar y Actualizar el usuario a modificar en la BD
     let userUpdated = await User.findByIdAndUpdate(userIdentity.userId, userToUpdate, { new: true});
 
     if (!userUpdated) {
@@ -278,10 +286,10 @@ export const updateUser = async (req, res) => {
       });
     }
 
-     // Devolver respuesta exitosa con el usuario actualizado
+    // Devolver respuesta exitosa con el usuario actualizado
     return res.status(200).json({
       status: "success",
-      message: "El usuario ha sido actualizado, correctamente",
+      message: "¡Usuario actualizado correctamente!",
       user: userUpdated
     });
   } catch (error) {
@@ -289,6 +297,42 @@ export const updateUser = async (req, res) => {
     return res.status(500).send({
       status: "error",
       message: "Error al actualizar los datos del usuario"
+    });
+  }
+}
+
+// Método para subir imágenes (AVATAR - img de perfil) y Actualizar la imagen de perfil
+export const uploadFiles = async (req, res) => {
+  try {
+    // Recoger el archivo de imagen y comprobarmos que existe
+    if (!req.file) {
+      return res.status(404).send({
+        status: "error",
+        message: "La petición no incluye la imagen"
+      });
+    }
+
+    // Conseguir el nombre del archivo
+    let image = req.file.originalname;
+
+    // Obtever la extension del archivo
+    const  imageSplit =  image.split(".");
+    const extension = imageSplit[imageSplit.length -1]
+
+
+    // Devolver respuesta exitosa 
+    return res.status(200).json({
+      status: "success",
+      message: "Método para subir archivos",
+      user: req.user,
+      file: req.file
+    });
+
+  } catch (error) {
+    console.log("Error al subir archivos", error);
+    return res.status(400).send({
+      status: "error",
+      message: "Error al subir archivos"
     });
   }
 }
