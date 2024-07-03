@@ -2,6 +2,8 @@ import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import { createToken } from "../services/jwt.js";
 import fs from "fs";
+import path from "path";
+import { log } from "console";
 
 // Acciones de prueba
 export const testUser = (req, res) => {
@@ -60,6 +62,7 @@ export const register = async (req, res) => {
         name: user_to_save.name,
         last_name: user_to_save.last_name,
         nick: user_to_save.nick,
+        email: user_to_save.email
       }
     });
 
@@ -72,7 +75,7 @@ export const register = async (req, res) => {
   }
 }
 
-// Método para autenticar usuarios
+/// Método para autenticar usuarios
 export const login = async (req, res) => {
   try {
 
@@ -121,12 +124,8 @@ export const login = async (req, res) => {
         id: user._id,
         name: user.name,
         last_name: user.last_name,
-        bio: user.bio,
-        email: user.email,
         nick: user.nick,
-        role: user.role,
-        image: user.image,
-        created_at: user.created_at
+        email: user.email
       }
     });
 
@@ -138,14 +137,23 @@ export const login = async (req, res) => {
     });
   }
 }
+
 // Método para mostrar el perfil del usuario
 export const profile = async (req, res) => {
   try {
     // Obtener el ID del usuario desde los parámetros de la URL
     const userId = req.params.id;
 
+    // Verificar si el ID recibido del usuario autenticado existe
+    if (!req.user || !req.user.userId) {
+      return res.status(404).send({
+        status: "error",
+        message: "Usuario no autenticado"
+      });
+    }
+
     // Buscar al usuario en la BD, excluimos la contraseña, rol, versión.
-    const userProfile = await User.findById(userId).select('-password -role -__v -email');
+    const userProfile = await User.findById(userId).select('-password -role -__v');
 
     // Verificar si el usuario existe
     if (!userProfile) {
@@ -154,6 +162,9 @@ export const profile = async (req, res) => {
         message: "Usuario no encontrado"
       });
     }
+
+    // Información de seguimiento - (req.user.userId = Id del usuario autenticado) 
+    const followInfo = await followThisUser(req.user.userId, userId);
 
     // Devolver la información del perfil del usuario
     return res.status(200).json({
@@ -171,6 +182,7 @@ export const profile = async (req, res) => {
   }
 }
 
+// Método para listar usuarios con paginación
 // Método para listar usuarios con paginación
 export const listUsers = async (req, res) => {
   try {
@@ -195,7 +207,10 @@ export const listUsers = async (req, res) => {
       });
     }
 
-     // Devolver los usuarios paginados
+    // Listar los seguidores de un usuario, obtener el array de IDs de los usuarios que sigo
+    let followUsers = await followUserIds(req);
+
+    // Devolver los usuarios paginados
     return res.status(200).json({
       status: "success",
       users: users.docs,
@@ -210,7 +225,6 @@ export const listUsers = async (req, res) => {
       users_following: followUsers.following,
       user_follow_me: followUsers.followers
     });
-
   } catch (error) {
     console.log("Error al listar los usuarios:", error);
     return res.status(500).send({
@@ -315,24 +329,96 @@ export const uploadFiles = async (req, res) => {
     // Conseguir el nombre del archivo
     let image = req.file.originalname;
 
-    // Obtever la extension del archivo
-    const  imageSplit =  image.split(".");
-    const extension = imageSplit[imageSplit.length -1]
+    // Obtener la extensión del archivo
+    const imageSplit = image.split(".");
+    const extension = imageSplit[imageSplit.length -1];
 
+    // Validar la extensión
+    if (!["png", "jpg", "jpeg", "gif"].includes(extension.toLowerCase())){
+        //Borrar archivo subido
+        const filePath = req.file.path;
+        fs.unlinkSync(filePath);
+
+        return res.status(400).send({
+          status: "error",
+          message: "Extensión del archivo es inválida."
+        });
+    }
+
+    // Comprobar tamaño del archivo (pj: máximo 1MB)
+    const fileSize = req.file.size;
+    const maxFileSize = 1 * 1024 * 1024; // 1 MB
+
+    if (fileSize > maxFileSize) {
+      const filePath = req.file.path;
+      fs.unlinkSync(filePath);
+
+      return res.status(400).send({
+        status: "error",
+        message: "El tamaño del archivo excede el límite (máx 1 MB)"
+      });
+    }
+
+    // Guardar la imagen en la BD
+    const userUpdated = await User.findOneAndUpdate(
+      {_id: req.user.userId},
+      { image: req.file.filename },
+      { new: true}
+    );
+
+    // verificar si la actualización fue exitosa
+    if (!userUpdated) {
+      return res.status(500).send({
+        status: "error",
+        message: "Eror en la subida de la imagen"
+      });
+    }
 
     // Devolver respuesta exitosa 
     return res.status(200).json({
       status: "success",
-      message: "Método para subir archivos",
-      user: req.user,
+      user: userUpdated,
       file: req.file
     });
-
+    
   } catch (error) {
     console.log("Error al subir archivos", error);
-    return res.status(400).send({
+    return res.status(500).send({
       status: "error",
       message: "Error al subir archivos"
     });
   }
 }
+
+// Método para mostrar la imagen del perfil (AVATAR)
+export const avatar = async (req, res) => {
+  try {
+    // Obtener el parámetro de la url
+    const file = req.params.file;
+
+    // Obtener el path real de la imagen
+    const filePath = "./upload/avatars/" + file;
+    
+    // Comprobamos si existe
+    fs.stat(filePath, (error, exists) => {
+      if(!exists){
+        return res.status(404).send({
+          status: "error",
+          message: "No existe la imagen"
+        });
+      }
+
+      // Devolver el archivo
+      return res.sendFile(path.resolve(filePath));
+    });
+
+  } catch (error) {
+    console.log("Error al mostrar la imagen", error);
+    return res.status(500).send({
+      status: "error",
+      message: "Error al mostrar la imagen"
+    });
+  }
+}
+
+
