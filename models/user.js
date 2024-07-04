@@ -37,7 +37,8 @@ const UserSchema = Schema ({
   }
 });
 
-// Añadir el plugin de paginación
+// Añadir pluggin de paginación
 UserSchema.plugin(mongoosePaginate);
+
 
 export default model("User", UserSchema, "users");

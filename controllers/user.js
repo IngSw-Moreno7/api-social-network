@@ -1,9 +1,10 @@
 import User from "../models/user.js";
+import Follow from "../models/follow.js";
 import bcrypt from "bcrypt";
 import { createToken } from "../services/jwt.js";
 import fs from "fs";
 import path from "path";
-import { log } from "console";
+
 
 // Acciones de prueba
 export const testUser = (req, res) => {
@@ -75,7 +76,7 @@ export const register = async (req, res) => {
   }
 }
 
-/// Método para autenticar usuarios
+// Método para autenticar usuarios
 export const login = async (req, res) => {
   try {
 
@@ -163,7 +164,7 @@ export const profile = async (req, res) => {
       });
     }
 
-    // Información de seguimiento - (req.user.userId = Id del usuario autenticado) 
+    // Información de seguimiento - (req.user.userId = Id del usuario autenticado)
     const followInfo = await followThisUser(req.user.userId, userId);
 
     // Devolver la información del perfil del usuario
@@ -182,7 +183,6 @@ export const profile = async (req, res) => {
   }
 }
 
-// Método para listar usuarios con paginación
 // Método para listar usuarios con paginación
 export const listUsers = async (req, res) => {
   try {
@@ -240,7 +240,7 @@ export const updateUser = async (req, res) => {
     // Recoger información del usuario a actualizar
     let userIdentity = req.user;
     let userToUpdate = req.body;
-    
+
     // Validar que los campos necesarios estén presentes
     if (!userToUpdate.email || !userToUpdate.nick) {
       return res.status(400).send({
@@ -374,13 +374,13 @@ export const uploadFiles = async (req, res) => {
       });
     }
 
-    // Devolver respuesta exitosa 
+    // Devolver respuesta exitosa
     return res.status(200).json({
       status: "success",
       user: userUpdated,
       file: req.file
     });
-    
+
   } catch (error) {
     console.log("Error al subir archivos", error);
     return res.status(500).send({
@@ -397,8 +397,8 @@ export const avatar = async (req, res) => {
     const file = req.params.file;
 
     // Obtener el path real de la imagen
-    const filePath = "./upload/avatars/" + file;
-    
+    const filePath = "./uploads/avatars/" + file;
+
     // Comprobamos si existe
     fs.stat(filePath, (error, exists) => {
       if(!exists){
@@ -407,7 +407,7 @@ export const avatar = async (req, res) => {
           message: "No existe la imagen"
         });
       }
-
+      
       // Devolver el archivo
       return res.sendFile(path.resolve(filePath));
     });
@@ -420,5 +420,4 @@ export const avatar = async (req, res) => {
     });
   }
 }
-
 
