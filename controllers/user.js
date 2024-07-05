@@ -184,6 +184,8 @@ export const profile = async (req, res) => {
   }
 }
 
+//VIDEO 40:00
+
 // Método para listar usuarios con paginación
 export const listUsers = async (req, res) => {
   try {
