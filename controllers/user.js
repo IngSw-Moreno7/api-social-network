@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import { createToken } from "../services/jwt.js";
 import fs from "fs";
 import path from "path";
+import { followUserIds } from "../services/followServices.js";
 
 
 // Acciones de prueba
@@ -164,8 +165,8 @@ export const profile = async (req, res) => {
       });
     }
 
-    // Información de seguimiento - (req.user.userId = Id del usuario autenticado)
-    const followInfo = await followThisUser(req.user.userId, userId);
+    // Informacion de seguimiento - (req.user.userId = ID del usuario autenticado)
+    const followInfo = await followUserIds(req.user.userId, userId);
 
     // Devolver la información del perfil del usuario
     return res.status(200).json({
@@ -407,7 +408,7 @@ export const avatar = async (req, res) => {
           message: "No existe la imagen"
         });
       }
-      
+
       // Devolver el archivo
       return res.sendFile(path.resolve(filePath));
     });
@@ -420,4 +421,3 @@ export const avatar = async (req, res) => {
     });
   }
 }
-
