@@ -1,10 +1,9 @@
 import User from "../models/user.js";
-import Follow from "../models/follow.js";
 import bcrypt from "bcrypt";
 import { createToken } from "../services/jwt.js";
 import fs from "fs";
 import path from "path";
-import { followUserIds } from "../services/followServices.js";
+import { followThisUser, followUserIds } from "../services/followServices.js";
 
 
 // Acciones de prueba
@@ -166,7 +165,7 @@ export const profile = async (req, res) => {
     }
 
     // Informacion de seguimiento - (req.user.userId = ID del usuario autenticado)
-    const followInfo = await followUserIds(req.user.userId, userId);
+    const followInfo = await followThisUser(req.user.userId, userId);
 
     // Devolver la información del perfil del usuario
     return res.status(200).json({
@@ -307,6 +306,7 @@ export const updateUser = async (req, res) => {
       message: "¡Usuario actualizado correctamente!",
       user: userUpdated
     });
+    
   } catch (error) {
     console.log("Error al actualizar los datos del usuario", error);
     return res.status(500).send({
