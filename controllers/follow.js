@@ -2,6 +2,7 @@ import Follow from "../models/follow.js"
 import User from "../models/user.js"
 import { followUserIds } from "../services/followServices.js"
 
+
 // Acciones de prueba
 export const testFollow = (req, res) => {
   return res.status(200).send({
@@ -82,7 +83,7 @@ export const saveFollow = async (req, res) =>{
         message: "Usuario seguido no encontrado"
       });
     }
-
+    
     // Combinar datos de follow y followedUser
     const combinedFollowData = {
       ...followStored.toObject(),
@@ -91,6 +92,7 @@ export const saveFollow = async (req, res) =>{
         last_name: followedUserDetails.last_name
       }
     };
+
 
     // Devolver respuesta
     return res.status(200).json({
@@ -150,7 +152,6 @@ export const unfollow = async (req, res) => {
     });
   }
 }
-
 // Método para listar usuarios que estoy siguiendo
 export const following = async (req, res) => {
   try {
@@ -176,7 +177,7 @@ export const following = async (req, res) => {
       },
       lean: true
     }
-
+    
     // Buscar en la BD los seguidores y popular los datos de los usuarios
     const follows = await Follow.paginate({ following_user: userId }, options);
 
@@ -256,4 +257,3 @@ export const followers = async (req, res) => {
     });
   }
 }
-

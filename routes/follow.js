@@ -1,4 +1,3 @@
-//Importaciones
 import { Router } from "express";
 const router = Router();
 import { testFollow, saveFollow, unfollow, following, followers } from "../controllers/follow.js";
@@ -11,6 +10,5 @@ router.delete("/unfollow/:id", ensureAuth, unfollow);
 router.get("/following/:id?/:page?", ensureAuth, following);
 router.get("/followers/:id?/:page?", ensureAuth, followers);
 
-
-//Exportar el router
+// Exportar el Router
 export default router;

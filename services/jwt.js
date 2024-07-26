@@ -1,4 +1,4 @@
-// Importar dependencias
+// Importar dependecias
 import jwt from 'jwt-simple';
 import moment from 'moment';
 
@@ -23,5 +23,3 @@ export {
   secret,
   createToken
 };
-
-

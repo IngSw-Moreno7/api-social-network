@@ -2,7 +2,6 @@ import jwt from 'jwt-simple';
 import moment from 'moment';
 import { secret } from '../services/jwt.js';
 
-// Asegurar la autenticación
 export const ensureAuth = (req, res, next) => {
   // Comprobar si llegó la cabecera de autenticación
   if (!req.headers.authorization) {
@@ -17,6 +16,7 @@ export const ensureAuth = (req, res, next) => {
 
   // Decodificar el token y comprobar si ha expirado
   try {
+
     // Decodificar el token
     let payload = jwt.decode(token, secret);
 

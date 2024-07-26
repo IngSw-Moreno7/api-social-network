@@ -38,8 +38,8 @@ export const followUserIds = async (req, res) => {
     return {
       following: [],
       followers: []
-    }
     };
+  }
 }
 
 // Obtenemos los datos de UN usuario que me está siguiendo a mi o que yo sigo
