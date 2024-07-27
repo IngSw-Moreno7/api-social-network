@@ -4,6 +4,7 @@ import { testPublication, savePublication, showPublication, deletePublication, p
 import { ensureAuth } from '../middlewares/auth.js';
 import multer from "multer";
 import Publication from '../models/publication.js';
+import { checkEntityExists } from '../middlewares/checkEntityExists.js';
 
 
 // Configuración de subida de archivos
@@ -24,7 +25,7 @@ router.post('/new-publication', ensureAuth, savePublication);
 router.get('/show-publication/:id', ensureAuth, showPublication);
 router.delete('/delete-publication/:id', ensureAuth, deletePublication);
 router.get('/publications-user/:id/:page?', ensureAuth, publicationsUser);
-router.post('/upload-media/:id', [ensureAuth, uploads.single("file0")], uploadMedia);
+router.post('/upload-media/:id', [ensureAuth, checkEntityExists(Publication, 'id'), uploads.single("file0")], uploadMedia);
 router.get('/media/:file', showMedia);
 router.get('/feed/:page?', ensureAuth, feed);
 

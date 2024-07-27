@@ -155,7 +155,7 @@ export const profile = async (req, res) => {
     }
 
     // Buscar al usuario en la BD, excluimos la contraseña, rol, versión.
-    const userProfile = await User.findById(userId).select('-password -role -__v -email');
+    const userProfile = await User.findById(userId).select('-password -role -__v - email');
 
     // Verificar si el usuario existe
     if (!userProfile) {
@@ -346,7 +346,7 @@ export const uploadFiles = async (req, res) => {
         });
     }
 
-    // Comprobar tamaño del archivo (máximo 1MB)
+    // Comprobar tamaño del archivo (pj: máximo 1MB)
     const fileSize = req.file.size;
     const maxFileSize = 1 * 1024 * 1024; // 1 MB
 

@@ -1,7 +1,7 @@
 import Publication from "../models/publication.js"
 import fs from "fs";
 import path from "path";
-import { followUserIds } from "../services/followServices.js";
+import { followUserIds } from "../services/followServices.js"
 
 // Acciones de prueba
 export const testPublication = (req, res) => {
@@ -182,7 +182,6 @@ export const publicationsUser = async (req, res) => {
 
 // Método para subir archivos (imagen) a las publicaciones que hacemos
 export const uploadMedia = async (req, res) => {
-  
   try {
     // Obtener el id de la publicación
     const publicationId = req.params.id;
@@ -225,18 +224,29 @@ export const uploadMedia = async (req, res) => {
 
     // Comprobar tamaño del archivo (pj: máximo 1MB)
     const fileSize = req.file.size;
-    const maxFileSize = 1 * 1024 * 1024; // 1 MB (Ej: 4928x3280px)
+    const maxFileSize = 1 * 1024 * 1024; // 1 MB
 
     if (fileSize > maxFileSize) {
-      const FilePath = req.file.path;
-      fs.unlinkSync(FilePath );
+      const largeFilePath = req.file.path;
+      fs.unlinkSync(largeFilePath );
 
       return res.status(400).send({
         status: "error",
         message: "El tamaño del archivo excede el límite (máx 1 MB)"
       });
     }
-    
+
+    // Verificar si el archivo realmente existe antes de proceder
+    const actualFilePath  = path.resolve("./uploads/publications/", req.file.filename);
+    try {
+      fs.statSync(actualFilePath); 
+    } catch (error) {
+      return res.status(404).send({
+        status: "error",
+        message: "El archivo no existe o hubo un error al verificarlo"
+      });
+    }
+
     // Si todo es correcto, se procede a guardar en la BD
     const publicationUpdated = await Publication.findOneAndUpdate(
       { user_id: req.user.userId, _id: publicationId },
@@ -267,17 +277,14 @@ export const uploadMedia = async (req, res) => {
   }
 }
 
-
 // Método para mostrar el archivo subido a la publicación
 export const showMedia = async (req, res) => {
-
   try {
-    
-    // Obtener el parámetro del archivo desde la URL
+    // Obtener el parámetro del archivo desde la url
     const file = req.params.file;
 
     // Crear el path real de la imagen
-    const filePath = "./upload/publications/" + file;
+    const filePath = "./uploads/publications/" + file;
 
     // Comprobar si existe el archivo
     fs.stat(filePath, (error, exists) => {
@@ -294,23 +301,21 @@ export const showMedia = async (req, res) => {
   } catch (error) {
     return res.status(500).send({
       status: "error",
-      message: "Error al mostrar la publicación"
+      message: "Error al mostrar archivo en la publicación"
     });
   }
 }
 
 // Método para listar todas las publicaciones de los usuarios que yo sigo (Feed)
 export const feed = async (req, res) => {
-  
   try {
-    
     // Asignar el número de página
     let page = req.params.page ? parseInt(req.params.page, 10) : 1;
 
     // Número de publicaciones que queremos mostrar por página
     let itemsPerPage = req.query.limit ? parseInt(req.query.limit, 10) : 5;
 
-    // Verificar que el usuario autenticado existe y tiene un userID
+    // Verificar que el usuario autenticado existe y tiene un userId
     if(!req.user || !req.user.userId) {
       return res.status(404).send({
         status: "error",

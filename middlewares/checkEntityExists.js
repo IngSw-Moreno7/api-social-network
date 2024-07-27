@@ -2,11 +2,8 @@ import mongoose from 'mongoose';
 
 // Middleware para verificar si una entidad existe
 export const checkEntityExists = (model, ownerIdField = 'id') => {
-  
-    return async (req, res, next) => {
-    
+  return async (req, res, next) => {
     try {
-        
       let entityId;
 
       // Verificar si el ownerIdField es 'id' o 'user_id' para saber de dónde obtener el ID
@@ -17,16 +14,16 @@ export const checkEntityExists = (model, ownerIdField = 'id') => {
       } else {
         // Si ownerIdField no es 'id' ni 'user_id', devolvemos un error 400
         return res.status(400).send({
-          status: 'error',
-          message: `Parámetro de ID no reconocido: ${ownerIdField}`,
+          status: "error",
+          message: `Parámetro de ID no reconocido: ${ownerIdField}`
         });
       }
 
       // Verificar si el ID es válido
       if (!mongoose.Types.ObjectId.isValid(entityId)) {
         return res.status(400).send({
-          status: 'error',
-          message: `ID no válido: ${entityId}`,
+          status: "error",
+          message: `ID no válido: ${entityId}`
         });
       }
 
@@ -34,8 +31,8 @@ export const checkEntityExists = (model, ownerIdField = 'id') => {
 
       if (!entityExists) {
         return res.status(404).send({
-          status: 'error',
-          message: `No existe la entidad con el ID ${entityId}`,
+          status: "error",
+          message: `No existe la entidad con el ID ${entityId}`
         });
       }
 
@@ -48,10 +45,10 @@ export const checkEntityExists = (model, ownerIdField = 'id') => {
     } catch (error) {
       // Capturar cualquier otro error inesperado y devolver una respuesta 500
       return res.status(500).send({
-        status: 'error',
-        message: 'Error al verificar la entidad',
-        error: error.message,
+        status: "error",
+        message: "Error al verificar la entidad",
+        error: error.message
       });
     }
-  }
-}
+  };
+};

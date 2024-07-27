@@ -9,7 +9,6 @@ const FollowSchema = Schema({
     required: true
   },
   followed_user: {
-    type: Schema.ObjectId,
     ref: "User",
     required: true
   },
