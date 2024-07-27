@@ -1,4 +1,3 @@
-// Importaciones
 import { Router } from "express";
 const router = Router();
 import { testFollow, saveFollow, unfollow, following, followers } from "../controllers/follow.js";

@@ -9,7 +9,7 @@ import multer from "multer";
 // Configuración de subida de archivos
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "./uploads/avatars/");
+    cb(null, "./upload/avatars/");
   },
   filename: (req, file, cb) => {
     cb(null, "avatar-"+Date.now()+"-"+file.originalname);

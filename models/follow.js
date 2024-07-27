@@ -2,13 +2,13 @@ import { Schema, model } from "mongoose";
 import mongoosePaginate from 'mongoose-paginate-v2';
 
 const FollowSchema = Schema({
-  
   following_user: {
     type: Schema.ObjectId,
     ref: "User",
     required: true
   },
   followed_user: {
+    type: Schema.ObjectId,
     ref: "User",
     required: true
   },

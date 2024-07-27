@@ -18,6 +18,7 @@ const PublicationSchema = Schema({
   }
 });
 
+
 // Añadir pluggin de paginación
 PublicationSchema.plugin(mongoosePaginate);
 
